@@ -18,7 +18,7 @@ public class DedupeFilterValueState<T extends Serializable> extends RichFilterFu
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	
+
 	ValueState<Boolean> keyHasBeenSeen;
 
 	public DedupeFilterValueState() {
@@ -26,30 +26,28 @@ public class DedupeFilterValueState<T extends Serializable> extends RichFilterFu
 
 	@Override
 	public void open(Configuration parameters) throws Exception {
-		
-		StateTtlConfig ttlConfig = StateTtlConfig
-			    .newBuilder(Time.seconds(100))
-			    .setUpdateType(StateTtlConfig.UpdateType.OnCreateAndWrite)
-			    .setStateVisibility(StateTtlConfig.StateVisibility.NeverReturnExpired)
-			    .build();
-		
+
+		StateTtlConfig ttlConfig = StateTtlConfig.newBuilder(Time.seconds(100))
+				.setUpdateType(StateTtlConfig.UpdateType.OnCreateAndWrite)
+				.setStateVisibility(StateTtlConfig.StateVisibility.NeverReturnExpired).build();
+
 		ValueStateDescriptor<Boolean> stateDescriptor = new ValueStateDescriptor<>("keyHasBeenSeen", Types.BOOLEAN);
-		
+
 		stateDescriptor.enableTimeToLive(ttlConfig);
-		
-        keyHasBeenSeen = getRuntimeContext().getState(stateDescriptor);
+
+		keyHasBeenSeen = getRuntimeContext().getState(stateDescriptor);
 	}
 
 	@Override
 	public boolean filter(T value) throws Exception {
 		
-		if ( keyHasBeenSeen.value() == null) {
-            keyHasBeenSeen.update(true);
-            return true;
-        } else {
-        	return false;
-        }
-		
+		if (keyHasBeenSeen.value() == null) {
+			keyHasBeenSeen.update(true);
+			return true;
+		} else {
+			return false;
+		}
+
 	}
 
 }
